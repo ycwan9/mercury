@@ -34,6 +34,9 @@ public class SSHManager {
     }
 
     public boolean connect() {
+        if (port == 0){
+            return true;
+        }
         boolean success = true;
         try {
             session = jsch.getSession(user, host, port);
@@ -49,23 +52,27 @@ public class SSHManager {
 
     public boolean sendCommand() {
         boolean success = true;
-        try {
-            ChannelExec channel = (ChannelExec) session.openChannel("exec");
-            if (sudo) {
-                channel.setCommand("echo " + password + " | sudo -S -p '' " + command);
-            } else {
-                channel.setCommand(command);
+        if (port){
+            try {
+                ChannelExec channel = (ChannelExec) session.openChannel("exec");
+                if (sudo) {
+                    channel.setCommand("echo " + password + " | sudo -S -p '' " + command);
+                } else {
+                    channel.setCommand(command);
+                }
+                channel.connect(TIMEOUT);
+                channel.disconnect();
+            } catch (JSchException e) {
+                logger.error(e.getMessage().replace("\n", " "));
+                success = false;
             }
-            channel.connect(TIMEOUT);
-            channel.disconnect();
-        } catch (JSchException e) {
-            logger.error(e.getMessage().replace("\n", " "));
-            success = false;
         }
         return success;
     }
 
     public void disconnect() {
-        session.disconnect();
+        if (port){
+            session.disconnect();
+        }
     }
 }
