@@ -66,6 +66,33 @@ public class SSHManager {
                 logger.error(e.getMessage().replace("\n", " "));
                 success = false;
             }
+        }//ssh
+        else{
+            String returnString = "";
+            Process pro = null;
+            Runtime runTime = Runtime.getRuntime();
+            if (runTime == null) {
+                System.err.println("Create runtime error!");
+                logger.error("Create runtime error");
+                success = false;
+            }
+            try {
+                pro = runTime.exec(command);
+                BufferedReader input = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+                PrintWriter output = new PrintWriter(new OutputStreamWriter(pro.getOutputStream()));
+                String line;
+                while ((line = input.readLine()) != null) {
+                    returnString += line + "\n";
+                }
+                input.close();
+                output.close();
+                pro.destroy();
+                logger.debug(returnString);
+            } catch (IOException e) {
+                e.printStackTrace();
+                success = false;
+                logger.error(e);
+            }
         }
         return success;
     }
